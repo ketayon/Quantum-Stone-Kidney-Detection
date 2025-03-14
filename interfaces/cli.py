@@ -9,7 +9,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(BASE_DIR, "../"))
 
 from image_processing.dimensionality_reduction import X_train_reduced, X_test_reduced
-from image_processing.data_loader import y_train, y_test, dataset_path_tumor, dataset_path_normal
+from image_processing.data_loader import y_train, y_test, dataset_path_stone, dataset_path_normal
 from quantum_classification.quantum_model import pegasos_svc
 from workflow.workflow_manager import WorkflowManager
 
@@ -23,12 +23,12 @@ def count_images(directory):
 
 
 def view_dataset_info():
-    """Displays dataset statistics (tumor vs normal image count)."""
-    tumor_count = count_images(dataset_path_tumor)
+    """Displays dataset statistics (Kidney Stone vs Normal)."""
+    stone_count = count_images(dataset_path_stone)
     normal_count = count_images(dataset_path_normal)
     log.info(f"Dataset Information:")
-    log.info(f"  - Tumor Images: {tumor_count}")
-    log.info(f"  - Normal Images: {normal_count}")
+    log.info(f"  - Kidney Stone Images: {stone_count}")
+    log.info(f"  - Normal Kidney Images: {normal_count}")
 
 
 def show_model_scores():
@@ -55,8 +55,8 @@ def recommend_treatment():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CLI for Quantum Brain Tumor Detection")
-    parser.add_argument("--dataset-info", action="store_true", help="View dataset statistics (tumor/normal count)")
+    parser = argparse.ArgumentParser(description="CLI for Quantum Kidney Stone Detection")
+    parser.add_argument("--dataset-info", action="store_true", help="View dataset statistics (Kidney Stone/Normal count)")
     parser.add_argument("--model-score", action="store_true", help="Display Quantum Model accuracy")
     parser.add_argument("--recommend", action="store_true", help="Get a treatment recommendation")
 

@@ -1,5 +1,6 @@
 import os
 import sys
+import random
 import numpy as np
 import torch
 import pandas as pd
@@ -14,7 +15,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
 from image_processing.data_loader import count_images
 from image_processing.dimensionality_reduction import X_train_reduced, X_test_reduced
-from image_processing.data_loader import y_train, y_test, dataset_path_tumor, dataset_path_normal
+from image_processing.data_loader import y_train, y_test, dataset_path_stone, dataset_path_normal
 from quantum_classification.kernel_learning import ansatz
 from workflow.workflow_manager import WorkflowManager
 
@@ -34,7 +35,7 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 workflow_manager = WorkflowManager()
 
 # Load trained quantum model
-MODEL_PATH = "models/Upgraded_PegasosQSVC_Fidelity_quantm_trainer_brain_tumor.model"
+MODEL_PATH = "models/PegasosQSVC_Fidelity_quantm_trainer_kidney.model"
 if os.path.exists(MODEL_PATH):
     loaded_model = PegasosQSVC.load(MODEL_PATH)
     log.info("Loaded trained PegasosQSVC model.")
@@ -52,60 +53,55 @@ def home():
 @app.route("/dataset-info")
 def dataset_info():
     """Get dataset statistics."""
-    tumor_count = count_images(dataset_path_tumor)
+    stone_count = count_images(dataset_path_stone)
     normal_count = count_images(dataset_path_normal)
 
     return jsonify({
-        "tumor_count": tumor_count,
+        "stone_count": stone_count,
         "normal_count": normal_count
     })
 
 
-import random
-
-@app.route("/mri-image")
-def mri_image():
-    """Display an MRI image and its color transformation."""
+@app.route("/ultrasound-image")
+def ultrasound_image():
+    """Display an Ultrasound image and its color transformation."""
 
     # Check if the dataset folder exists
-    if not os.path.exists(dataset_path_tumor):
+    if not os.path.exists(dataset_path_stone):
         log.error("Dataset folder not found!")
         return jsonify({"error": "Dataset folder not found!"}), 404
 
-    # Get a list of available images in the tumor dataset
-    image_files = [f for f in os.listdir(dataset_path_tumor) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
+    # Get a list of available images in the stone dataset
+    image_files = [f for f in os.listdir(dataset_path_stone) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
 
     if not image_files:
-        log.error("No MRI images found in dataset!")
-        return jsonify({"error": "No MRI images found in dataset!"}), 404
+        log.error("No Ultrasound images found in dataset!")
+        return jsonify({"error": "No Ultrasound images found in dataset!"}), 404
 
-    # Select a random MRI image if Y253.jpg is not found
-    image_filename = "Y253.jpg" if "Y253.jpg" in image_files else random.choice(image_files)
-    image_path = os.path.join(dataset_path_tumor, image_filename)
+    # Select a random Ultrasound image
+    image_filename = random.choice(image_files)
+    image_path = os.path.join(dataset_path_stone, image_filename)
 
-    log.info(f"Using MRI Image: {image_filename}")
+    log.info(f"Using Ultrasound Image: {image_filename}")
 
-    # Load and preprocess MRI image
-    mri_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    # Load and preprocess Ultrasound image
+    ultrasound_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     transform_img = ScaleIntensity(minv=0.0, maxv=1.0)
-    mri_image_scaled = transform_img(mri_image.astype(np.float32))
+    ultrasound_image_scaled = transform_img(ultrasound_image.astype(np.float32))
 
     # Normalize before applying colormap
-    colored_mri = plt.cm.viridis(mri_image_scaled / np.max(mri_image_scaled))
-
-    # Ensure static directory exists
-    os.makedirs(STATIC_DIR, exist_ok=True)
+    colored_ultrasound = plt.cm.viridis(ultrasound_image_scaled / np.max(ultrasound_image_scaled))
 
     # Save processed images
-    gray_image_path = os.path.join(STATIC_DIR, "mri_gray.jpg")
-    colored_image_path = os.path.join(STATIC_DIR, "mri_colored.jpg")
+    gray_image_path = os.path.join(STATIC_DIR, "ultrasound_gray.jpg")
+    colored_image_path = os.path.join(STATIC_DIR, "ultrasound_colored.jpg")
 
-    plt.imsave(gray_image_path, mri_image, cmap="gray")
-    plt.imsave(colored_image_path, colored_mri)
+    plt.imsave(gray_image_path, ultrasound_image, cmap="gray")
+    plt.imsave(colored_image_path, colored_ultrasound)
 
     return jsonify({
-        "gray_image": "static/mri_gray.jpg",
-        "colored_image": "static/mri_colored.jpg"
+        "gray_image": "static/ultrasound_gray.jpg",
+        "colored_image": "static/ultrasound_colored.jpg"
     })
 
 
@@ -120,7 +116,7 @@ def pca_plot():
         marker="s",
         facecolors="w",
         edgecolors="green",
-        label="Class 0 (Train)",
+        label="Normal Kidney (Train)",
     )
 
     plt.scatter(
@@ -129,25 +125,7 @@ def pca_plot():
         marker="o",
         facecolors="w",
         edgecolors="orange",
-        label="Class 1 (Train)",
-    )
-
-    plt.scatter(
-        X_test_reduced[np.where(y_test == 0)[0], 0],
-        X_test_reduced[np.where(y_test == 0)[0], 1],
-        marker="s",
-        facecolors="green",
-        edgecolors="w",
-        label="Class 0 (Test)",
-    )
-
-    plt.scatter(
-        X_test_reduced[np.where(y_test == 1)[0], 0],
-        X_test_reduced[np.where(y_test == 1)[0], 1],
-        marker="o",
-        facecolors="orange",
-        edgecolors="w",
-        label="Class 1 (Test)",
+        label="Kidney Stone (Train)",
     )
 
     plt.legend()
@@ -158,18 +136,6 @@ def pca_plot():
 
     plt.savefig(os.path.join(STATIC_DIR, "pca_plot.jpg"))
     return jsonify({"pca_plot": "static/pca_plot.jpg"})
-
-
-@app.route("/quantum-circuit")
-def quantum_circuit():
-    """Generate and save a quantum circuit visualization."""
-    circuit = QuantumCircuit(6, 6)
-    circuit.compose(ansatz, range(6), inplace=True)
-    circuit = circuit.decompose()
-
-    circuit.draw("mpl", filename=os.path.join(STATIC_DIR, "quantum_circuit.jpg"))
-
-    return jsonify({"circuit_image": "static/quantum_circuit.jpg"})
 
 
 @app.route("/predict-probabilities")
@@ -186,7 +152,7 @@ def predict_probabilities():
     plt.hist(y_pred_positive_probs, bins=30, alpha=0.7, color="orange", label="Predicted Probabilities")
     plt.axvline(0.5, color="blue", linestyle="--", label="Decision Threshold (0.5)", linewidth=1.5)
     plt.legend()
-    plt.xlabel("Predicted Probability for Positive Class")
+    plt.xlabel("Predicted Probability for Kidney Stone")
     plt.ylabel("Frequency")
     plt.title("Predicted Probability Distribution")
 

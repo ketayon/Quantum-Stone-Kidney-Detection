@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum AI Brain Tumor Detection</title>
+    <title>Quantum AI Kidney Stone Detection</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
@@ -19,24 +19,24 @@
 <body>
 
     <div class="container">
-        <h1>Quantum AI Brain Tumor Detection</h1>
+        <h1>Quantum AI Kidney Stone Detection</h1>
 
         <!-- Dataset Statistics -->
         <div class="box">
             <h2>Dataset Statistics</h2>
-            <p id="tumorCount">Tumor Images: Loading...</p>
-            <p id="normalCount">Normal Images: Loading...</p>
+            <p id="stoneCount">Kidney Stone Images: Loading...</p>
+            <p id="noStoneCount">Normal Kidney Images: Loading...</p>
         </div>
 
-        <!-- MRI Image Display -->
+        <!-- Ultrasound Image Display -->
         <div class="grid">
             <div class="box">
-                <h3>Original MRI Image</h3>
-                <img id="mriGray" src="" alt="Gray MRI Image">
+                <h3>Original Ultrasound Image</h3>
+                <img id="ultrasoundGray" src="" alt="Gray Ultrasound Image">
             </div>
             <div class="box">
-                <h3>Color Transformed MRI</h3>
-                <img id="mriColored" src="" alt="Colored MRI Image">
+                <h3>Color Transformed Ultrasound</h3>
+                <img id="ultrasoundColored" src="" alt="Colored Ultrasound Image">
             </div>
         </div>
 
@@ -44,12 +44,6 @@
         <div class="box">
             <h3>PCA Dataset Visualization</h3>
             <img id="pcaPlot" src="" alt="PCA Visualization">
-        </div>
-
-        <!-- Quantum Circuit Visualization -->
-        <div class="box">
-            <h3>Quantum Circuit Used</h3>
-            <img id="quantumCircuit" src="" alt="Quantum Circuit">
         </div>
 
         <!-- Prediction Probability Distribution -->
@@ -77,27 +71,22 @@
         fetch("/dataset-info")
             .then(response => response.json())
             .then(data => {
-                document.getElementById("tumorCount").innerText = "Tumor Images: " + data.tumor_count;
-                document.getElementById("normalCount").innerText = "Normal Images: " + data.normal_count;
+                document.getElementById("stoneCount").innerText = "Kidney Stone Images: " + data.stone_count;
+                document.getElementById("noStoneCount").innerText = "Normal Kidney Images: " + data.no_stone_count;
             });
 
-        // Fetch and display MRI images
-        fetch("/mri-image")
+        // Fetch and display Ultrasound images
+        fetch("/ultrasound-image")
             .then(response => response.json())
             .then(data => {
-                document.getElementById("mriGray").src = data.gray_image;
-                document.getElementById("mriColored").src = data.colored_image;
+                document.getElementById("ultrasoundGray").src = data.gray_image;
+                document.getElementById("ultrasoundColored").src = data.colored_image;
             });
 
         // Fetch PCA plot
         fetch("/pca-plot")
             .then(response => response.json())
             .then(data => document.getElementById("pcaPlot").src = data.pca_plot);
-
-        // Fetch Quantum Circuit image
-        fetch("/quantum-circuit")
-            .then(response => response.json())
-            .then(data => document.getElementById("quantumCircuit").src = data.circuit_image);
 
         // Fetch Predicted Probability Distribution
         fetch("/predict-probabilities")

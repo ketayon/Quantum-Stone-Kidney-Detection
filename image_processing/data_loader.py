@@ -9,22 +9,19 @@ import kagglehub
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-path = kagglehub.dataset_download(r"navoneel/brain-mri-images-for-brain-tumor-detection")
+path = kagglehub.dataset_download(r"gurjeetkaurmangat/kidney-ultrasound-images-stone-and-no-stone")
 log.info("Downloading dataset from Kaggle...")
 
-dataset_path_tumor = f'{path}/brain_tumor_dataset/yes'
-dataset_path_normal = f'{path}/brain_tumor_dataset/no'
+dataset_path_normal = f'{path}/my dataset final 512x512(implemented)/Normal'
+dataset_path_stone = f'{path}/my dataset final 512x512(implemented)/stone'
 
 # Remove potential .DS_Store files
-for folder in [dataset_path_tumor, dataset_path_normal]:
+for folder in [dataset_path_stone, dataset_path_normal]:
     ds_store_path = os.path.join(folder, ".DS_Store")
     if os.path.exists(ds_store_path):
         os.remove(ds_store_path)
         log.info(f"Removed .DS_Store from {folder}")
 
-# # Allow user input for image size
-# img_width = int(input("Enter image width: "))
-# img_height = int(input("Enter image height: "))
 img_size = (256, 256)
 
 
@@ -74,17 +71,11 @@ def load_and_limit_data(path, label, num_samples, target_size=img_size):
     return data, labels
 
 # Load Data
-tumor_data, tumor_labels = load_and_limit_data(dataset_path_tumor, label=1, num_samples=155)
-normal_data, normal_labels = load_and_limit_data(dataset_path_normal, label=0, num_samples=98)
+normal_data, normal_labels = load_and_limit_data(dataset_path_normal, label=0, num_samples=3500)
+stone_data, stone_labels = load_and_limit_data(dataset_path_stone, label=1, num_samples=5002)
 
-# Ensure dataset is not empty before splitting
-if len(tumor_data) == 0 and len(normal_data) == 0:
-    log.error("No images found! Cannot proceed with train-test split.")
-    exit(1)
-
-# Combine both datasets
-all_data = tumor_data + normal_data
-all_labels = tumor_labels + normal_labels
+all_data = np.concatenate([normal_data, stone_data], axis=0)
+all_labels = np.concatenate([normal_labels, stone_labels], axis=0)
 
 log.info(f"Total images loaded: {len(all_data)}")
 
