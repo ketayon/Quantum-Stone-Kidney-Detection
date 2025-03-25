@@ -26,52 +26,48 @@
       color: #00796b;
       margin-top: 10px;
     }
-    .image-preview {
-      margin-top: 10px;
-      max-width: 300px;
-      border-radius: 8px;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Quantum AI Kidney Stone Detection</h1>
+    <p>This project is an end-to-end solution that integrates <strong>Quantum AI, Computer Vision, and Hybrid Quantum-Classical Models</strong> to detect <strong>kidney stones from ultrasound images</strong>. It leverages <strong>Quantum Kernel Learning, Quantum Support Vector Classifiers (QSVC), and Neural Networks</strong> for enhanced medical diagnosis.</p>
 
     <!-- Dataset Statistics -->
     <div class="box">
       <h2>Dataset Statistics</h2>
-      <p id="stoneCount">Kidney Stone Images: Loading...</p>
-      <p id="noStoneCount">Normal Kidney Images: Loading...</p>
+      <p id="tumorCount">Kidney Stone Images: Loading...</p>
+      <p id="normalCount">Normal Kidney Images: Loading...</p>
     </div>
 
-    <!-- Ultrasound Image Display -->
+    <!-- MRI Image Display -->
     <div class="grid">
       <div class="box">
         <h3>Original Ultrasound Image</h3>
-        <img id="ultrasoundGray" src="" alt="Gray Ultrasound Image"/>
+        <img id="mriGray" src="" alt="Gray Image" />
       </div>
       <div class="box">
         <h3>Color Transformed Ultrasound</h3>
-        <img id="ultrasoundColored" src="" alt="Colored Ultrasound Image"/>
+        <img id="mriColored" src="" alt="Colored Image" />
       </div>
     </div>
 
     <!-- PCA Dataset Visualization -->
     <div class="box">
       <h3>PCA Dataset Visualization</h3>
-      <img id="pcaPlot" src="" alt="PCA Visualization"/>
+      <img id="pcaPlot" src="" alt="PCA Visualization" />
     </div>
 
-    <!-- Prediction Probability Distribution -->
+    <!-- Predicted Probability Distribution -->
     <div class="box">
       <h3>Predicted Probability Distribution</h3>
-      <img id="predictedProbs" src="" alt="Predicted Probability Histogram"/>
+      <img id="predictedProbs" src="" alt="Predicted Histogram" />
     </div>
 
     <!-- Confusion Matrix -->
     <div class="box">
       <h3>Confusion Matrix</h3>
-      <img id="confMatrix" src="" alt="Confusion Matrix"/>
+      <img id="confMatrix" src="" alt="Confusion Matrix" />
     </div>
 
     <!-- Classification Score -->
@@ -81,125 +77,76 @@
       <p id="testScore">Test Accuracy: Loading...</p>
     </div>
 
-    <!-- Quantum Circuit Classifier -->
-    <div class="box">
-      <h3>Quantum Circuit Classifier</h3>
-      <p>Enter PCA-reduced features (comma-separated):</p>
-      <input type="text" id="qcInput" placeholder="e.g. 0.25, -1.23, 0.98, ..." />
-      <button onclick="runQuantumClassification()">Classify</button>
-      <div id="qcResult" class="prediction-result"></div>
-    </div>
-
-    <!-- Upload Ultrasound Image for Classification -->
+    <!-- Immediate Classification -->
     <div class="box">
       <h3>Upload Ultrasound Image for Quantum Classification</h3>
       <input type="file" id="uploadImage" accept="image/*" />
-      <br/>
-      <img id="previewImage" class="image-preview" src="#" alt="Uploaded Preview" style="display: none;" />
-      <br/>
-      <button onclick="uploadAndClassifyImage()">🔬 Classify Uploaded Image</button>
+      <button onclick="uploadAndClassifyImage()">🔬 Classify Now</button>
       <div id="uploadResult" class="prediction-result">Waiting for image...</div>
+    </div>
+
+    <!-- Async IBM Quantum Job -->
+    <div class="box">
+      <h3>Run on IBM Quantum (Async)</h3>
+      <input type="file" id="asyncUploadImage" accept="image/*" />
+      <button onclick="submitQuantumJob()">📡 Submit to IBM Quantum</button>
+      <div id="jobStatus" class="prediction-result">Awaiting upload...</div>
     </div>
   </div>
 
   <script>
-    // Fetch dataset statistics
+    // Dataset stats
     fetch("/dataset-info")
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
-        document.getElementById("stoneCount").innerText = "Kidney Stone Images: " + data.stone_count;
-        document.getElementById("noStoneCount").innerText = "Normal Kidney Images: " + data.normal_count;
+        document.getElementById("tumorCount").innerText = "Kidney Stone Images: " + data.tumor_count;
+        document.getElementById("normalCount").innerText = "Normal Kidney Images: " + data.normal_count;
       });
 
-    // Fetch ultrasound image
-    fetch("/ultrasound-image")
-      .then(response => response.json())
+    // MRI Image
+    fetch("/mri-image")
+      .then(res => res.json())
       .then(data => {
-        document.getElementById("ultrasoundGray").src = data.gray_image;
-        document.getElementById("ultrasoundColored").src = data.colored_image;
+        document.getElementById("mriGray").src = data.gray_image;
+        document.getElementById("mriColored").src = data.colored_image;
       });
 
-    // Fetch PCA plot
+    // PCA
     fetch("/pca-plot")
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => document.getElementById("pcaPlot").src = data.pca_plot);
 
-    // Fetch predicted probability plot
+    // Probability
     fetch("/predict-probabilities")
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => document.getElementById("predictedProbs").src = data.predicted_probs_plot);
 
-    // Fetch confusion matrix
+    // Confusion Matrix
     fetch("/confusion-matrix")
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => document.getElementById("confMatrix").src = data.conf_matrix_plot);
 
-    // Fetch classification score
+    // Scores
     fetch("/classification-score")
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
         document.getElementById("trainScore").innerText = "Train Accuracy: " + data.train_score;
         document.getElementById("testScore").innerText = "Test Accuracy: " + data.test_score;
       });
 
-    // PCA-based input classification
-    function runQuantumClassification() {
-      const inputField = document.getElementById("qcInput");
-      const resultField = document.getElementById("qcResult");
-      const rawInput = inputField.value.trim();
-
-      if (!rawInput) {
-        resultField.innerText = "⚠️ Please enter feature values.";
-        return;
-      }
-
-      const features = rawInput.split(",").map(val => parseFloat(val.trim()));
-
-      fetch("/quantum-circuit-classify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ features: features })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.quantum_circuit_prediction) {
-          resultField.innerText = `🔮 Quantum Prediction: ${data.quantum_circuit_prediction}`;
-        } else if (data.error) {
-          resultField.innerText = `❌ Error: ${data.error}`;
-        } else {
-          resultField.innerText = "❓ Unexpected response.";
-        }
-      })
-      .catch(error => {
-        console.error("Prediction error:", error);
-        resultField.innerText = "❌ Request failed.";
-      });
-    }
-
-    // Upload & classify image
     function uploadAndClassifyImage() {
-      const fileInput = document.getElementById("uploadImage");
-      const resultField = document.getElementById("uploadResult");
-      const previewImage = document.getElementById("previewImage");
-      const file = fileInput.files[0];
+      const input = document.getElementById("uploadImage");
+      const resultBox = document.getElementById("uploadResult");
+      const file = input.files[0];
 
       if (!file) {
-        resultField.innerText = "⚠️ Please select an image file.";
+        resultBox.innerText = "⚠️ Please select an image.";
         return;
       }
 
       const formData = new FormData();
       formData.append("image", file);
-
-      // Show preview
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImage.src = e.target.result;
-        previewImage.style.display = "block";
-      };
-      reader.readAsDataURL(file);
-
-      resultField.innerText = "🔄 Processing image...";
+      resultBox.innerText = "🔄 Analyzing image...";
 
       fetch("/classify-image", {
         method: "POST",
@@ -208,17 +155,86 @@
       .then(res => res.json())
       .then(data => {
         if (data.quantum_prediction) {
-          resultField.innerText = `🔮 Quantum Prediction: ${data.quantum_prediction}`;
-        } else if (data.error) {
-          resultField.innerText = `❌ Error: ${data.error}`;
+          resultBox.innerText = `🧠 Quantum Prediction: ${data.quantum_prediction}`;
         } else {
-          resultField.innerText = "❓ Unexpected response.";
+          resultBox.innerText = `❌ Error: ${data.error}`;
         }
       })
       .catch(err => {
-        console.error("Image classification error:", err);
-        resultField.innerText = "❌ Request failed.";
+        console.error("Upload error:", err);
+        resultBox.innerText = "❌ Upload failed.";
       });
+    }
+
+    function submitQuantumJob() {
+      const input = document.getElementById("asyncUploadImage");
+      const resultBox = document.getElementById("jobStatus");
+      const file = input.files[0];
+
+      if (!file) {
+        resultBox.innerText = "⚠️ Please select an image.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+      resultBox.innerText = "📡 Submitting to IBM Quantum...";
+
+      fetch("/quantum-job/submit", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.job_id) {
+          resultBox.innerText = `📨 Job ID: ${data.job_id} — waiting for result...`;
+          pollQuantumJob(data.job_id, resultBox);
+        } else {
+          resultBox.innerText = `❌ ${data.error}`;
+        }
+      })
+      .catch(err => {
+        console.error("Quantum job submit failed:", err);
+        resultBox.innerText = "❌ Upload or job submission failed.";
+      });
+    }
+
+    function pollQuantumJob(jobId, resultBox) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        fetch(`/quantum-job/status/${jobId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "complete") {
+              clearInterval(interval);
+              resultBox.innerText = `✅ Quantum Result: ${data.prediction} (Value: ${data.expectation_value})`;
+            } else if (data.status === "error") {
+              clearInterval(interval);
+              resultBox.innerText = `❌ ${data.message}`;
+            } else {
+              resultBox.innerText = `⏳ IBM Quantum processing (attempt ${++attempts})...`;
+            }
+          })
+          .catch(err => {
+            clearInterval(interval);
+            console.error("Polling error:", err);
+            resultBox.innerText = "❌ Failed to check job status.";
+          });
+      }, 10000);
+    }
+
+    // 🔬 Example standalone fetch logic for testing
+    function exampleSubmitToQuantumAPI(file) {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      fetch("/quantum-job/submit", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => console.log("📨 Manual Fetch Response:", data))
+      .catch(err => console.error("Manual fetch error:", err));
     }
   </script>
 </body>

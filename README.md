@@ -72,11 +72,9 @@ pip install -r requirements.txt
 ```bash
 python interfaces/cli.py --model-score
 
--h, --help         show this help message and exit
 --dataset-info     Show dataset statistics
 --model-score      Show PegasosQSVC model accuracy
 --predict-qsvc     Classify with PegasosQSVC model
---predict-circuit  Classify with quantum circuit-based classifier
 ```
 ✅ **Output Example:**  
 `Quantum QSVC on the training dataset: 0.89`  
