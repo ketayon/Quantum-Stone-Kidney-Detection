@@ -9,35 +9,28 @@ import kagglehub
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-path = kagglehub.dataset_download(r"gurjeetkaurmangat/kidney-ultrasound-images-stone-and-no-stone")
+__all__ = [
+    "dataset_path_stone", "dataset_path_normal",
+    "X_train", "X_test", "y_train", "y_test", "count_images"
+]
+
+path = kagglehub.dataset_download("gurjeetkaurmangat/kidney-ultrasound-images-stone-and-no-stone")
 log.info("Downloading dataset from Kaggle...")
 
-dataset_path_normal = f'{path}/my dataset final 512x512(implemented)/Normal'
-dataset_path_stone = f'{path}/my dataset final 512x512(implemented)/stone'
+dataset_path_normal = os.path.join(path, "my dataset final 512x512(implemented)", "Normal")
+dataset_path_stone = os.path.join(path, "my dataset final 512x512(implemented)", "stone")
 
-# Remove potential .DS_Store files
+# Clean .DS_Store
 for folder in [dataset_path_stone, dataset_path_normal]:
-    ds_store_path = os.path.join(folder, ".DS_Store")
-    if os.path.exists(ds_store_path):
-        os.remove(ds_store_path)
-        log.info(f"Removed .DS_Store from {folder}")
+    ds_store = os.path.join(folder, ".DS_Store")
+    if os.path.exists(ds_store):
+        os.remove(ds_store)
+        log.info(f"Removed: {ds_store}")
 
 img_size = (256, 256)
 
 
 def load_images_from_folder(folder, label, target_size=img_size):
-    """
-    Loads images from a given folder and resizes them to the specified target size.
-    Converts images to RGB and flattens them into numpy arrays.
-
-    Args:
-        folder (str): Path to the folder containing images.
-        label (int): Label associated with the images in the folder.
-        target_size (tuple): Target size to which images will be resized (width, height).
-
-    Returns:
-        tuple: A list of image data and their corresponding labels.
-    """
     data, labels = [], []
     for img_name in os.listdir(folder):
         img_path = os.path.join(folder, img_name)
@@ -46,52 +39,30 @@ def load_images_from_folder(folder, label, target_size=img_size):
             data.append(np.array(img).flatten())
             labels.append(label)
         except Exception as e:
-            log.error(f"Error loading image {img_name}: {e}")
+            log.warning(f"Error loading image {img_name}: {e}")
     return data, labels
 
 
-def load_and_limit_data(path, label, num_samples, target_size=img_size):
-    """
-    Loads and limits the number of images from a folder to a specified number of samples.
-    Ensures images are resized to the specified target size.
-
-    Args:
-        path (str): Path to the folder containing images.
-        label (int): Label associated with the images in the folder.
-        num_samples (int): Maximum number of samples to load.
-        target_size (tuple): Target size to which images will be resized (width, height).
-
-    Returns:
-        tuple: A list of limited image data and their corresponding labels.
-    """
-    data, labels = load_images_from_folder(path, label, target_size)
+def load_and_limit_data(path, label, num_samples):
+    data, labels = load_images_from_folder(path, label)
     indices = np.random.choice(len(data), min(num_samples, len(data)), replace=False)
-    data = [data[i] for i in indices]
-    labels = [labels[i] for i in indices]
-    return data, labels
+    return [data[i] for i in indices], [labels[i] for i in indices]
 
-# Load Data
-normal_data, normal_labels = load_and_limit_data(dataset_path_normal, label=0, num_samples=3500)
-stone_data, stone_labels = load_and_limit_data(dataset_path_stone, label=1, num_samples=5002)
 
-all_data = np.concatenate([normal_data, stone_data], axis=0)
-all_labels = np.concatenate([normal_labels, stone_labels], axis=0)
+normal_data, normal_labels = load_and_limit_data(dataset_path_normal, 0, 3500)
+stone_data, stone_labels = load_and_limit_data(dataset_path_stone, 1, 5002)
 
-log.info(f"Total images loaded: {len(all_data)}")
+all_data = np.concatenate([normal_data, stone_data])
+all_labels = np.concatenate([normal_labels, stone_labels])
 
-# Split Data (Only if there is enough data)
-if len(all_data) > 1:
-    X_train, X_test, y_train, y_test = train_test_split(all_data, all_labels, test_size=0.2, random_state=42)
-    X_train = np.array(X_train)
-    y_train = np.array(y_train)
-    X_test = np.array(X_test)
-    y_test = np.array(y_test)
+X_train, X_test, y_train, y_test = train_test_split(
+    all_data, all_labels, test_size=0.2, random_state=42
+)
+X_train, X_test = np.array(X_train), np.array(X_test)
+y_train, y_test = np.array(y_train), np.array(y_test)
 
-    log.info(f"Dataset loaded successfully: {len(X_train)} train samples, {len(X_test)} test samples.")
-else:
-    log.error("Not enough images to split. Ensure the dataset is correctly downloaded.")
-    exit(1)  # Stop execution to avoid further errors
+log.info(f"Loaded {len(X_train)} training and {len(X_test)} test samples.")
 
 
 def count_images(directory):
-    return len([f for f in os.listdir(directory) if f.endswith(('.jpg', '.JPG', '.png', '.PNG', '.jpeg'))])
+    return len([f for f in os.listdir(directory) if f.lower().endswith(('.jpg', '.png', '.jpeg'))])

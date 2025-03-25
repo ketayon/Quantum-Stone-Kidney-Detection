@@ -2,48 +2,53 @@
 
 This project is an **end-to-end solution** that integrates **Quantum AI, Computer Vision, and Hybrid Quantum-Classical Models** to detect **kidney stones from ultrasound images**. It leverages **Quantum Kernel Learning, Quantum Support Vector Classifiers (QSVC), and Neural Networks** for enhanced medical diagnosis.
 
-## 🚀 Features  
+---
 
-- **Real Kidney Ultrasound Image Processing & Augmentation**  
-- **Quantum-Classical Hybrid Computation**  
-- **Automated Workflow & IBM Quantum Cloud Integration**  
-- **Live Web UI for Ultrasound Visualization & Prediction**  
-- **CLI Support for Direct Model Execution**  
-- **Dockerized for Seamless Deployment**  
+## 🚀 Features
+
+- ✅ Real Kidney Ultrasound Image Processing & Augmentation  
+- ✅ Quantum-Classical Hybrid Computation  
+- ✅ Automated Workflow & IBM Quantum Cloud Integration  
+- ✅ Live Web UI for Visualization & Prediction  
+- ✅ Upload your own ultrasound image and get **quantum-based prediction**  
+- ✅ CLI Support for Direct Model Execution  
+- ✅ Dockerized for Seamless Deployment  
 
 ---
 
-## 🏗 **Solution Architecture**  
+## 🏗️ Solution Architecture
 
-### 🔬 **End-to-End Processing Pipeline**  
+### 🔬 End-to-End Processing Pipeline
 
 1. **Ultrasound Preprocessing**  
    - Load ultrasound images and enhance them with intensity scaling.  
-   - Convert scans into optimal feature vectors for Quantum AI.  
+   - Convert scans into optimal feature vectors for Quantum AI.
 
 2. **Quantum Feature Extraction**  
-   - Reduces ultrasound data dimensionality using **PCA**.  
-   - Encodes optimized data into **Quantum Kernel Circuits**.  
+   - Reduces ultrasound data dimensionality using **PCA** or block averaging.  
+   - Encodes optimized data into **Quantum Kernel Circuits**.
 
 3. **Quantum Model Training & Classification**  
-   - Uses **Quantum Support Vector Classifiers (QSVC)** trained on IBM Quantum Cloud.  
-   - Hybrid **Quantum + Classical ML** improves kidney stone detection accuracy.  
+   - Uses **PegasosQSVC** trained with **Fidelity Quantum Kernel** on IBM Quantum.  
+   - Hybrid **Quantum + Classical ML** improves medical diagnosis accuracy.
 
 4. **Automated Workflow Execution**  
-   - **JobScheduler & WorkflowManager** distribute quantum-classical computations.  
-   - IBM **Quantum Backend** executes feature processing.  
+   - JobScheduler and WorkflowManager handle distributed computation.  
+   - Executes on real IBM Quantum Hardware (or local simulator fallback).
 
-5. **Real-Time Visualization & Prediction**  
-   - Web UI provides live ultrasound scan visualization.  
-   - Users can **upload images, analyze quantum predictions, and visualize kidney stone detection probabilities**.  
+5. **Real-Time Visualization & Quantum Prediction**  
+   - UI shows **kidney scan, PCA visualization, model confidence, and confusion matrix**.  
+   - 📤 **Upload custom ultrasound image → get prediction from a quantum circuit**  
+   - ❗️If the uploaded image is invalid or too uniform, a warning will appear.
 
 ---
 
-## 🏗 **Installation Guide**  
+## ⚙️ Installation Guide
 
-### **1️⃣ Clone the Repository**  
+### 1️⃣ Clone the Repository
+
 ```bash
-git clone https://github.com/your-repo/Quantum-Kidney-Stone-Detection
+git clone https://github.com/ketayon/Quantum-Kidney-Stone-Detection
 cd Quantum-Kidney-Stone-Detection
 ```
 
@@ -66,6 +71,12 @@ pip install -r requirements.txt
 ### **1️⃣ CLI Mode**  
 ```bash
 python interfaces/cli.py --model-score
+
+-h, --help         show this help message and exit
+--dataset-info     Show dataset statistics
+--model-score      Show PegasosQSVC model accuracy
+--predict-qsvc     Classify with PegasosQSVC model
+--predict-circuit  Classify with quantum circuit-based classifier
 ```
 ✅ **Output Example:**  
 `Quantum QSVC on the training dataset: 0.89`  
@@ -77,11 +88,19 @@ python interfaces/cli.py --model-score
 ```bash
 python interfaces/web_app/app.py
 ```
-🖥 **Access Web App:**  
-🔍 Open **`http://127.0.0.1:5000/`** in a browser.  
-✔ Upload and analyze ultrasound images  
-✔ View Quantum Model Predictions  
-✔ Visualize Ultrasound Scans and Kidney Stone Probability Heatmaps  
+🖥 Open in your browser:
+👉 http://127.0.0.1:5000/
+
+UI Features:
+🖼 View real ultrasound samples
+📊 Visualize PCA, confusion matrix, and probability distributions
+⚡ Get Quantum Model Performance Scores
+📤 Upload your own ultrasound image for classification
+Quantum circuit will process and return one of:
+✅ "Kidney Stone Detected"
+✅ "No Kidney Stone Detected"
+❌ "Invalid image" if image is blank, noisy, or not kidney ultrasound
+  
 
 ---
 
