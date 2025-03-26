@@ -1,32 +1,17 @@
 import logging
-import os
+import numpy as np
+from qiskit import transpile
 from qiskit.circuit import Parameter
 from qiskit.quantum_info import SparsePauliOp
-from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-from qiskit_ibm_runtime import QiskitRuntimeService, EstimatorV2 as Estimator
+from qiskit_aer import AerSimulator
 
 from quantum_classification.quantum_circuit import build_ansatz, calculate_total_params
 
 log = logging.getLogger(__name__)
 
-# Ensure IBM token is available
-token = os.getenv("QISKIT_IBM_TOKEN")
-if not token:
-    raise ValueError("QISKIT_IBM_TOKEN environment variable is not set!")
-
-# Set up service and backend
-service = QiskitRuntimeService(
-    channel="ibm_quantum",
-    instance="ibm-q/open/main",
-    token=token
-)
-backend = service.least_busy(operational=True, simulator=False)
-estimator = Estimator(mode=backend)
-
-
 def evaluate_ansatz_expectation(features):
     """
-    Evaluate ⟨Z⊗Z⊗...Z⟩ on real IBM backend using EstimatorV2 (blocking).
+    Evaluate ⟨Z⊗Z⊗...Z⟩ on local AerSimulator (blocking).
 
     Args:
         features (List[float]): Quantum input features of length num_qubits * layers.
@@ -44,35 +29,39 @@ def evaluate_ansatz_expectation(features):
     # Build parameterized ansatz
     params = [Parameter(f"θ{i}") for i in range(total_params)]
     circuit = build_ansatz(num_qubits, params)
+    param_dict = dict(zip(params, features))
+    qc = circuit.assign_parameters(param_dict)
+    qc.measure_all()
 
-    # Observable: Z⊗Z⊗...Z
-    observable = SparsePauliOp("Z" * num_qubits)
+    # Simulate using AerSimulator
+    simulator = AerSimulator()
+    transpiled = transpile(qc, simulator)
+    result = simulator.run(transpiled, shots=1024).result()
+    counts = result.get_counts()
 
-    # Transpile to backend's native gate set
-    pass_manager = generate_preset_pass_manager(backend=backend, optimization_level=1)
-    transpiled = pass_manager.run(circuit)
-    observable = observable.apply_layout(transpiled.layout)
+    # Compute expectation value manually from Z measurements
+    expectation = 0
+    shots = sum(counts.values())
+    for bitstring, count in counts.items():
+        # Convert most significant bit to 0 or 1
+        z_value = 1 if bitstring[::-1][0] == '0' else -1
+        expectation += z_value * count
 
-    # Submit and wait for result (blocking)
-    log.info("📡 Submitting Estimator job to IBM Quantum for Kidney Stone Detection...")
-    job = estimator.run([(transpiled, observable, [features])])
-    result = job.result()
-    value = float(result[0].data.evs)
-
-    log.info(f"✅ IBM Quantum Expectation Value: {value:.4f}")
-    return value
+    expectation /= shots
+    log.info(f"✅ Local Expectation Value: {expectation:.4f}")
+    return expectation
 
 
-def predict_with_expectation(features, threshold=0.5):
+def predict_with_expectation(features, threshold=0.00):
     """
-    Predict label using blocking expectation value evaluation (CLI/debug only).
+    Predict label using blocking expectation value evaluation.
 
     Args:
         features (List[float]): Input vector.
         threshold (float): Decision boundary.
 
     Returns:
-        str: "Kidney Stone Detected" or "No Kidney Stone"
+        str: Prediction string.
     """
     value = evaluate_ansatz_expectation(features)
     return "Kidney Stone Detected" if value > threshold else "No Kidney Stone"

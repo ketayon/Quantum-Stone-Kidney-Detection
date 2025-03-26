@@ -3,7 +3,6 @@ import numpy as np
 import logging
 from PIL import Image
 from sklearn.model_selection import train_test_split
-import kagglehub
 
 
 logging.basicConfig(level=logging.INFO)
@@ -14,11 +13,8 @@ __all__ = [
     "X_train", "X_test", "y_train", "y_test", "count_images"
 ]
 
-path = kagglehub.dataset_download("gurjeetkaurmangat/kidney-ultrasound-images-stone-and-no-stone")
-log.info("Downloading dataset from Kaggle...")
-
-dataset_path_normal = os.path.join(path, "my dataset final 512x512(implemented)", "Normal")
-dataset_path_stone = os.path.join(path, "my dataset final 512x512(implemented)", "stone")
+dataset_path_normal = "datasets/Normal"
+dataset_path_stone = "datasets/stone"
 
 # Clean .DS_Store
 for folder in [dataset_path_stone, dataset_path_normal]:

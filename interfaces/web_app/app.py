@@ -1,3 +1,5 @@
+# interfaces/web_app/app.py
+
 import os
 import sys
 
@@ -29,7 +31,6 @@ from image_processing.data_loader import (
     y_train, y_test,
     dataset_path_stone, dataset_path_normal
 )
-from quantum_classification.quantum_async_jobs import submit_quantum_job, check_quantum_job
 from workflow.workflow_manager import WorkflowManager
 
 logging.basicConfig(level=logging.INFO)
@@ -73,11 +74,11 @@ def mri_image():
 
     image_files = [f for f in os.listdir(dataset_path_stone) if f.lower().endswith(('.jpg', '.png', '.jpeg'))]
     if not image_files:
-        return jsonify({"error": "No ultrasound images found!"}), 404
+        return jsonify({"error": "No MRI images found!"}), 404
 
     selected = random.choice(image_files)
     path = os.path.join(dataset_path_stone, selected)
-    log.info(f"Selected Ultrasound Image: {selected}")
+    log.info(f"Selected MRI Image: {selected}")
 
     mri_img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     scaled = ScaleIntensity(minv=0.0, maxv=1.0)(mri_img.astype(np.float32))
@@ -101,14 +102,19 @@ def pca_plot():
         plt.scatter(
             X_train_reduced[np.where(y_train == 0)[0], 0],
             X_train_reduced[np.where(y_train == 0)[0], 1],
-            marker="o", color="green", label="Normal Kidney (Train)"
+            marker="o",
+            color="green",
+            label="Normal Kidney (Train)"
         )
         plt.scatter(
             X_train_reduced[np.where(y_train == 1)[0], 0],
             X_train_reduced[np.where(y_train == 1)[0], 1],
-            marker="x", color="red", label="Kidney Stone (Train)"
+            marker="x",
+            color="red",
+            label="Kidney Stone (Train)"
         )
-        plt.title("PCA Visualization of Kidney Ultrasound Dataset")
+
+        plt.title("PCA Visualization of Kidney MRI Dataset")
         plt.xlabel("Component 1")
         plt.ylabel("Component 2")
         plt.legend()
@@ -175,18 +181,6 @@ def classification_score():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/quantum-circuit-classify", methods=["POST"])
-def quantum_circuit_classify():
-    try:
-        data = request.get_json()
-        features = np.array(data.get("features", []), dtype=np.float32)
-        pred = workflow_manager.classify_with_quantum_circuit(features)
-        return jsonify({"quantum_circuit_prediction": pred})
-    except Exception as e:
-        log.exception("Quantum Circuit Error")
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/classify-image", methods=["POST"])
 def classify_uploaded_image():
     if "image" not in request.files:
@@ -202,7 +196,7 @@ def classify_uploaded_image():
 
         img = cv2.imread(temp)
         if img is None:
-            raise ValueError("Invalid or unreadable ultrasound image.")
+            raise ValueError("Invalid or unreadable MRI image.")
 
         gray = apply_grayscale(img)
         blurred = apply_gaussian_blur(gray)
@@ -211,9 +205,7 @@ def classify_uploaded_image():
         if np.std(resized) < 1e-3:
             raise ValueError("Uniform image — likely invalid.")
 
-        # Quantum Feature Prep
-        num_qubits = 18
-        layers = 3
+        num_qubits, layers = 18, 3
         total_params = num_qubits * layers
 
         reduced = reduce_to_n_dimensions(resized.reshape(1, -1), num_qubits)
@@ -223,66 +215,12 @@ def classify_uploaded_image():
         if len(features) != total_params:
             raise ValueError(f"Expected {total_params} features, got {len(features)}")
 
-        prediction = workflow_manager.classify_with_quantum_circuit(features)
+        prediction = workflow_manager.classify_with_quantum_circuit_noise(features)
         return jsonify({"quantum_prediction": prediction})
 
     except Exception as e:
         log.exception("Image classification failed")
-        return jsonify({"error": f"Invalid image: {str(e)}"}), 400
-
-
-@app.route("/quantum-job/submit", methods=["POST"])
-def quantum_job_submit():
-    if "image" not in request.files:
-        return jsonify({"error": "No image file provided"}), 400
-
-    image = request.files["image"]
-    if image.filename == "":
-        return jsonify({"error": "No selected image"}), 400
-
-    try:
-        # Save image temporarily
-        temp = os.path.join(tempfile.gettempdir(), secure_filename(image.filename))
-        image.save(temp)
-
-        # Process the image into features
-        img = cv2.imread(temp)
-        if img is None:
-            raise ValueError("Unreadable image")
-
-        gray = apply_grayscale(img)
-        blurred = apply_gaussian_blur(gray)
-        resized = cv2.resize(blurred, (256, 256)).flatten().astype(np.float32)
-
-        num_qubits = 18
-        layers = 3
-        total_params = num_qubits * layers
-
-        reduced = reduce_to_n_dimensions(resized.reshape(1, -1), num_qubits)
-        scaled = MinMaxScaler((0, np.pi)).fit_transform(reduced).flatten()
-        features = np.tile(scaled, layers)[:total_params]
-
-        if len(features) != total_params:
-            raise ValueError(f"Expected {total_params} features, got {len(features)}")
-
-        # Submit async quantum job
-        job_id = submit_quantum_job(features)
-        return jsonify({"job_id": job_id, "message": "Quantum job submitted."})
-
-    except Exception as e:
-        log.exception("Quantum job submission failed")
-        return jsonify({"error": f"Failed to process image: {str(e)}"}), 400
-
-
-
-@app.route("/quantum-job/status/<job_id>", methods=["GET"])
-def quantum_job_status(job_id):
-    try:
-        result = check_quantum_job(job_id)
-        return jsonify(result)
-    except Exception as e:
-        log.exception("Error checking quantum job")
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": f"Invalid MRI image: {str(e)}"}), 400
 
 
 if __name__ == "__main__":

@@ -1,18 +1,19 @@
 # 🧠 Quantum AI Kidney Stone Detection
 
-This project is an **end-to-end solution** that integrates **Quantum AI, Computer Vision, and Hybrid Quantum-Classical Models** to detect **kidney stones from ultrasound images**. It leverages **Quantum Kernel Learning, Quantum Support Vector Classifiers (QSVC), and Neural Networks** for enhanced medical diagnosis.
+This project is an end-to-end AI solution that integrates Quantum Machine Learning, Computer Vision, and Hybrid Quantum-Classical Models to detect kidney stones from ultrasound images.
+It leverages Quantum Kernel Learning, PegasosQSVC, and AerSimulator (local quantum simulator) for fully offline diagnosis.
 
 ---
 
 ## 🚀 Features
 
-- ✅ Real Kidney Ultrasound Image Processing & Augmentation  
-- ✅ Quantum-Classical Hybrid Computation  
-- ✅ Automated Workflow & IBM Quantum Cloud Integration  
-- ✅ Live Web UI for Visualization & Prediction  
-- ✅ Upload your own ultrasound image and get **quantum-based prediction**  
-- ✅ CLI Support for Direct Model Execution  
-- ✅ Dockerized for Seamless Deployment  
+- ✅ Real Kidney Ultrasound Image Processing & Augmentation
+- ✅ Quantum-Classical Hybrid Computation
+- ✅ Local Simulation via Qiskit’s AerSimulator
+- ✅ Live Web UI for Visualization & Prediction
+- ✅ Upload your own ultrasound image and get quantum-based prediction
+- ✅ CLI Support for Direct Model Execution
+- ✅ Dockerized for Seamless Deployment 
 
 ---
 
@@ -21,25 +22,29 @@ This project is an **end-to-end solution** that integrates **Quantum AI, Compute
 ### 🔬 End-to-End Processing Pipeline
 
 1. **Ultrasound Preprocessing**  
-   - Load ultrasound images and enhance them with intensity scaling.  
-   - Convert scans into optimal feature vectors for Quantum AI.
+   - Converts uploaded images to grayscale 
+   - Applies Gaussian blur and scaling
+   - Extracts meaningful features
 
 2. **Quantum Feature Extraction**  
-   - Reduces ultrasound data dimensionality using **PCA** or block averaging.  
-   - Encodes optimized data into **Quantum Kernel Circuits**.
+   - Reduces data dimensionality using PCA  
+   - Expands into 54-parameter quantum ansatz
 
 3. **Quantum Model Training & Classification**  
-   - Uses **PegasosQSVC** trained with **Fidelity Quantum Kernel** on IBM Quantum.  
-   - Hybrid **Quantum + Classical ML** improves medical diagnosis accuracy.
+   - Uses PegasosQSVC trained on classical features 
+   - Performs classification using AerSimulator for expectation value
 
 4. **Automated Workflow Execution**  
-   - JobScheduler and WorkflowManager handle distributed computation.  
-   - Executes on real IBM Quantum Hardware (or local simulator fallback).
+   - JobScheduler and WorkflowManager handle orchestration  
+   - All jobs run locally, no cloud needed
 
-5. **Real-Time Visualization & Quantum Prediction**  
-   - UI shows **kidney scan, PCA visualization, model confidence, and confusion matrix**.  
-   - 📤 **Upload custom ultrasound image → get prediction from a quantum circuit**  
-   - ❗️If the uploaded image is invalid or too uniform, a warning will appear.
+5. **Visualization & Prediction Interfacen**  
+   - Web UI shows uploaded scan, PCA plots, model score, and quantum prediction.  
+   - Classifies uploaded image via quantum circuit  
+   - Returns either:
+      -- ✅ Kidney Stone Detected
+      -- ✅ No Kidney Stone
+      -- ❌ Invalid MRI image (if corrupt/empty)
 
 ---
 
@@ -87,18 +92,18 @@ python interfaces/cli.py --model-score
 python interfaces/web_app/app.py
 ```
 🖥 Open in your browser:
-👉 http://127.0.0.1:5000/
+http://127.0.0.1:5000/
 
-UI Features:
-🖼 View real ultrasound samples
-📊 Visualize PCA, confusion matrix, and probability distributions
-⚡ Get Quantum Model Performance Scores
-📤 Upload your own ultrasound image for classification
-Quantum circuit will process and return one of:
-✅ "Kidney Stone Detected"
-✅ "No Kidney Stone Detected"
-❌ "Invalid image" if image is blank, noisy, or not kidney ultrasound
-  
+✅ Web UI Features:
+
+📤 Upload Kidney Ultrasound Images
+
+🧠 Instant Classification via Quantum Circuit (simulated)
+
+📊 PCA Plot + Confusion Matrix + Probability Histogram
+
+🔬 Model Scores and Real-Time Visualization
+```
 
 ---
 
@@ -130,15 +135,11 @@ pytest tests/
 ```
 
 ---
-
-## 💼 IBM Quantum Cloud Integration  
-
-**Setup IBM Quantum Account**  
-1. Create an account at [IBM Quantum](https://quantum-computing.ibm.com/)  
-2. Get your API **Token** from **My Account**  
-3. Set it in your environment:  
-```bash
-export QISKIT_IBM_TOKEN="your_ibm_quantum_token"
+```
+## ☁️ No Cloud Dependency
+🛑 Previously used IBM Quantum Cloud for real quantum backend.
+✅ Now uses Qiskit AerSimulator to simulate all quantum circuits locally.
+✅ Works offline, no internet or API key required.
 ```
 
 ---
