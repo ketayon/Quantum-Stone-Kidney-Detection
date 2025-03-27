@@ -1,5 +1,3 @@
-# interfaces/web_app/app.py
-
 import os
 import sys
 
@@ -220,7 +218,7 @@ def classify_uploaded_image():
 
     except Exception as e:
         log.exception("Image classification failed")
-        return jsonify({"error": f"Invalid MRI image: {str(e)}"}), 400
+        return jsonify({"error": f"Invalid Ultrasound image: {str(e)}"}), 400
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@ import logging
 import numpy as np
 from qiskit import transpile
 from qiskit.circuit import Parameter
-from qiskit.quantum_info import SparsePauliOp
 from qiskit_aer import AerSimulator
 
 from quantum_classification.quantum_circuit import build_ansatz, calculate_total_params

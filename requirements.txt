@@ -10,7 +10,6 @@ torch
 pytest
 qiskit
 qiskit-machine-learning
-qiskit-ibm-runtime
 qiskit_aer
 gunicorn
 monai

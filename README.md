@@ -1,7 +1,7 @@
 # 🧠 Quantum AI Kidney Stone Detection
 
-This project is an end-to-end AI solution that integrates Quantum Machine Learning, Computer Vision, and Hybrid Quantum-Classical Models to detect kidney stones from ultrasound images.
-It leverages Quantum Kernel Learning, PegasosQSVC, and AerSimulator (local quantum simulator) for fully offline diagnosis.
+This project is an end-to-end AI solution that integrates Quantum Machine Learning, Computer Vision, and Quantum Models to detect kidney stones from ultrasound images.
+It leverages PegasosQSVC, and AerSimulator (local quantum simulator) for diagnosis.
 
 ---
 
@@ -11,7 +11,7 @@ It leverages Quantum Kernel Learning, PegasosQSVC, and AerSimulator (local quant
 - ✅ Quantum-Classical Hybrid Computation
 - ✅ Local Simulation via Qiskit’s AerSimulator
 - ✅ Live Web UI for Visualization & Prediction
-- ✅ Upload your own ultrasound image and get quantum-based prediction
+- ✅ Upload your own ultrasound image and get quantum-based prediction (image size 256x256)
 - ✅ CLI Support for Direct Model Execution
 - ✅ Dockerized for Seamless Deployment 
 
@@ -91,6 +91,7 @@ python interfaces/cli.py --model-score
 ```bash
 python interfaces/web_app/app.py
 ```
+```
 🖥 Open in your browser:
 http://127.0.0.1:5000/
 
@@ -117,9 +118,6 @@ docker build -t quantum-kidney-stone .
 ### **2️⃣ Run Container**  
 ```bash
 docker run -p 5000:5000 quantum-kidney-stone
-
-if echo "QISKIT_IBM_TOKEN=your_ibm_quantum_token_here" > .env
-docker run --env-file .env -p 5000:5000 quantum-kidney-stone
 ```
 
 🖥 **Access Web App:**  
