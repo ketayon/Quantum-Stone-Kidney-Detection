@@ -40,15 +40,6 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 
 workflow_manager = WorkflowManager()
 
-MODEL_PATH = "models/PegasosQSVC_Fidelity_quantm_trainer_kidney.model"
-if os.path.exists(MODEL_PATH):
-    loaded_model = PegasosQSVC.load(MODEL_PATH)
-    workflow_manager.model = loaded_model
-    log.info("Loaded trained QSVC model for Kidney Stone.")
-else:
-    log.warning("No trained kidney stone model found! Training a new one...")
-    workflow_manager.train_quantum_model()
-
 
 @app.route("/")
 def home():
